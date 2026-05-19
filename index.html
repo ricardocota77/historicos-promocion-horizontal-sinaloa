@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promoción Horizontal Sinaloa · Dashboard 2022–2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --card: #161b2e;
+    --border: #1e2640;
+    --accent: #f5a623;
+    --accent2: #3d8ef5;
+    --accent3: #5dde8a;
+    --red: #f55a5a;
+    --text: #e8eaf2;
+    --muted: #6b7399;
+    --federal: #3d8ef5;
+    --estatal: #f5a623;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    padding: 3rem 2.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0d1022 0%, #141830 50%, #0e1520 100%);
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(61,142,245,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+    color: #fff;
+  }
+  header h1 span { color: var(--accent); }
+  .header-sub {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.5;
+  }
+  .header-meta {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+  .meta-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  .meta-value.gold { color: var(--accent); }
+  .meta-value.blue { color: var(--accent2); }
+
+  /* CONTROLS */
+  .controls {
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+  .ctrl-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+  .btn-group {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #0a0d14; font-weight: 700; }
+  .btn.all.active { background: var(--accent2); border-color: var(--accent2); color: #0a0d14; }
+
+  .divider { width: 1px; height: 28px; background: var(--border); }
+
+  /* MAIN CONTENT */
+  main {
+    padding: 2rem 2.5rem;
+    max-width: 1400px;
+  }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+  .kpi-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .kpi-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .kpi-val.gold { color: var(--accent); }
+  .kpi-val.blue { color: var(--accent2); }
+  .kpi-val.green { color: var(--accent3); }
+  .kpi-val.red { color: var(--red); }
+  .kpi-sub {
+    margin-top: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 860px) { .charts-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .chart-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 240px;
+  }
+
+  /* TABLE */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease both;
+    margin-top: 1rem;
+  }
+  .table-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .table-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+  }
+  .search-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.35rem 0.75rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    width: 200px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--accent2); }
+  .search-box::placeholder { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th .sort-arrow { margin-left: 0.25rem; opacity: 0.4; }
+  thead th.sorted { color: var(--accent); }
+  thead th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,38,64,0.6);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: rgba(61,142,245,0.05); }
+  tbody tr:last-child { border-bottom: none; }
+  td {
+    padding: 0.7rem 1rem;
+    text-align: center;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  td:first-child, td:nth-child(2) { font-family: 'DM Mono', monospace; font-weight: 500; }
+
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  .badge-g1 { background: rgba(93,222,138,0.15); color: #5dde8a; border: 1px solid rgba(93,222,138,0.3); }
+  .badge-g2 { background: rgba(61,142,245,0.15); color: #3d8ef5; border: 1px solid rgba(61,142,245,0.3); }
+  .badge-g3 { background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
+  .badge-g4 { background: rgba(200,100,245,0.15); color: #c864f5; border: 1px solid rgba(200,100,245,0.3); }
+  .badge-g5 { background: rgba(245,90,90,0.15); color: #f55a5a; border: 1px solid rgba(245,90,90,0.3); }
+
+  .val-fed { color: var(--federal); font-weight: 500; }
+  .val-est { color: var(--estatal); font-weight: 500; }
+  .val-total { font-weight: 700; color: var(--text); }
+  .val-pts { font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+
+  /* FOOTER */
+  footer {
+    padding: 1.5rem 2.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 1rem;
+  }
+  .footer-brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .footer-brand span { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .empty-row td {
+    color: var(--muted);
+    font-style: italic;
+    padding: 2rem;
+  }
+
+  .toggle-view {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .toggle-view button {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .toggle-view button.active {
+    background: rgba(61,142,245,0.15);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .charts-row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 760px) { .charts-row2 { grid-template-columns: 1fr; } }
+
+  .legend-row {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">⚡ Datos Oficiales CENEVAL · USICAMM</div>
+  <h1>Promoción Horizontal<br><span>Sinaloa</span></h1>
+  <p class="header-sub">Análisis comparativo de participantes beneficiados y puntajes mínimos-máximos por grupo y modalidad. Ciclos 2022–2025.</p>
+  <div class="header-meta">
+    <div class="meta-item">
+      <span class="meta-label">Periodos</span>
+      <span class="meta-value blue">4</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Total Participantes</span>
+      <span class="meta-value gold" id="hdr-total">17,359</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Grupos</span>
+      <span class="meta-value">G1–G5</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Modalidades</span>
+      <span class="meta-value">Fed · Est</span>
+    </div>
+  </div>
+</header>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <span class="ctrl-label">Año</span>
+  <div class="btn-group" id="yr-group">
+    <button class="btn all active" data-year="all">Todos</button>
+    <button class="btn" data-year="2022">2022</button>
+    <button class="btn" data-year="2023">2023</button>
+    <button class="btn" data-year="2024">2024</button>
+    <button class="btn" data-year="2025">2025</button>
+  </div>
+  <div class="divider"></div>
+  <span class="ctrl-label">Grupo</span>
+  <div class="btn-group" id="grp-group">
+    <button class="btn all active" data-group="all">Todos</button>
+    <button class="btn" data-group="G1">G1</button>
+    <button class="btn" data-group="G2">G2</button>
+    <button class="btn" data-group="G3">G3</button>
+    <button class="btn" data-group="G4">G4</button>
+    <button class="btn" data-group="G5">G5</button>
+  </div>
+</div>
+
+<main>
+  <!-- KPI STRIP -->
+  <div class="kpi-strip" id="kpi-strip">
+    <!-- populated by JS -->
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">📊 Participantes por Año y Grupo</div>
+      <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#3d8ef5"></div>G1</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f5a623"></div>G2</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#5dde8a"></div>G3</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c864f5"></div>G4</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f55a5a"></div>G5</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🥧 Distribución Federal vs Estatal</div>
+      <div class="chart-wrap"><canvas id="chartDoughnut"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="charts-row2">
+    <div class="chart-card">
+      <div class="chart-title">📈 Puntaje Mínimo Federal por Año</div>
+      <div class="chart-wrap"><canvas id="chartLine"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏆 Beneficiados: Federal vs Estatal</div>
+      <div class="chart-wrap"><canvas id="chartBenef"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">📋 Datos Detallados</div>
+      <input class="search-box" id="search-box" type="text" placeholder="Buscar año, grupo…">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="año">Año <span class="sort-arrow">↕</span></th>
+            <th data-col="grupo">Grupo <span class="sort-arrow">↕</span></th>
+            <th data-col="federal">Federal <span class="sort-arrow">↕</span></th>
+            <th data-col="estatal">Estatal <span class="sort-arrow">↕</span></th>
+            <th data-col="total">Total <span class="sort-arrow">↕</span></th>
+            <th data-col="benFed">Ben. Fed. <span class="sort-arrow">↕</span></th>
+            <th data-col="benEst">Ben. Est. <span class="sort-arrow">↕</span></th>
+            <th data-col="ptMaxFed">Pts. Máx Fed <span class="sort-arrow">↕</span></th>
+            <th data-col="ptMinFed">Pts. Mín Fed <span class="sort-arrow">↕</span></th>
+            <th data-col="ptMaxEst">Pts. Máx Est <span class="sort-arrow">↕</span></th>
+            <th data-col="ptMinEst">Pts. Mín Est <span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="data-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-brand">⚡ <span>El Profe Cota</span> &amp; Maestros Sinaloa · Datos CENEVAL/USICAMM 2022–2025</div>
+  <div class="footer-brand" style="font-size:0.55rem; color: var(--muted);">Uso educativo e informativo · linktr.ee/MaestrosSinaloa</div>
+</footer>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const RAW = [
+  { año:2022,grupo:'G1',federal:645, estatal:73, total:718, benFed:161,ptMaxFed:81.32,ptMinFed:57.4,  benEst:35,ptMaxEst:77.02,ptMinEst:51.4  },
+  { año:2022,grupo:'G2',federal:1804,estatal:681,total:2485,benFed:431,ptMaxFed:83.88,ptMinFed:56.78, benEst:93,ptMaxEst:82.75,ptMinEst:62.4  },
+  { año:2022,grupo:'G3',federal:422, estatal:75, total:497, benFed:54, ptMaxFed:81.3, ptMinFed:63.96, benEst:35,ptMaxEst:76.02,ptMinEst:48.53 },
+  { año:2022,grupo:'G4',federal:540, estatal:162,total:702, benFed:29, ptMaxFed:90.25,ptMinFed:78.17, benEst:11,ptMaxEst:84.64,ptMinEst:74.46 },
+
+  { año:2023,grupo:'G1',federal:634, estatal:58, total:692, benFed:222,ptMaxFed:80.81,ptMinFed:62.07, benEst:16,ptMaxEst:81.21,ptMinEst:58.89 },
+  { año:2023,grupo:'G2',federal:1446,estatal:418,total:1864,benFed:488,ptMaxFed:86.19,ptMinFed:57.96, benEst:112,ptMaxEst:75.52,ptMinEst:62.25},
+  { año:2023,grupo:'G3',federal:309, estatal:64, total:373, benFed:77, ptMaxFed:80.57,ptMinFed:67.44, benEst:14,ptMaxEst:82.37,ptMinEst:63.57 },
+  { año:2023,grupo:'G4',federal:304, estatal:74, total:378, benFed:67, ptMaxFed:90.7, ptMinFed:74.19, benEst:11,ptMaxEst:84.94,ptMinEst:77.73 },
+  { año:2023,grupo:'G5',federal:53,  estatal:25, total:78,  benFed:6,  ptMaxFed:87.63,ptMinFed:81.27, benEst:2, ptMaxEst:86.34,ptMinEst:78.45 },
+
+  { año:2024,grupo:'G1',federal:769, estatal:57, total:826, benFed:198,ptMaxFed:79.3, ptMinFed:64.57, benEst:30,ptMaxEst:74.81,ptMinEst:56.31 },
+  { año:2024,grupo:'G2',federal:1828,estatal:533,total:2361,benFed:480,ptMaxFed:85.55,ptMinFed:64.64, benEst:72,ptMaxEst:82.67,ptMinEst:68.69 },
+  { año:2024,grupo:'G3',federal:398, estatal:95, total:493, benFed:74, ptMaxFed:85.46,ptMinFed:70.2,  benEst:14,ptMaxEst:80.69,ptMinEst:68.69 },
+  { año:2024,grupo:'G4',federal:291, estatal:78, total:369, benFed:51, ptMaxFed:87.18,ptMinFed:76.06, benEst:7, ptMaxEst:81.13,ptMinEst:81.1  },
+  { año:2024,grupo:'G5',federal:58,  estatal:28, total:86,  benFed:5,  ptMaxFed:88.97,ptMinFed:85.76, benEst:1, ptMaxEst:83,   ptMinEst:83    },
+
+  { año:2025,grupo:'G1',federal:756, estatal:43, total:799, benFed:212,ptMaxFed:88.09,ptMinFed:68.17, benEst:41,ptMaxEst:78.28,ptMinEst:44.31 },
+  { año:2025,grupo:'G2',federal:2143,estatal:615,total:2758,benFed:673,ptMaxFed:86.21,ptMinFed:64.97, benEst:144,ptMaxEst:86.5,ptMinEst:69.95 },
+  { año:2025,grupo:'G3',federal:388, estatal:59, total:447, benFed:85, ptMaxFed:86.97,ptMinFed:71.74, benEst:26,ptMaxEst:87.08,ptMinEst:70.06 },
+  { año:2025,grupo:'G4',federal:387, estatal:93, total:480, benFed:73, ptMaxFed:93.07,ptMinFed:78.81, benEst:15,ptMaxEst:91.29,ptMinEst:83.17 },
+  { año:2025,grupo:'G5',federal:102, estatal:25, total:127, benFed:10, ptMaxFed:93.85,ptMinFed:88.49, benEst:4, ptMaxEst:91.32,ptMinEst:86.88 },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let activeYear  = 'all';
+let activeGroup = 'all';
+let sortCol     = null;
+let sortDir     = 1;
+let searchQ     = '';
+
+// ─── FILTER ───────────────────────────────────────────────────────────────────
+function filtered() {
+  return RAW.filter(d => {
+    const yOk = activeYear  === 'all' || d.año    === +activeYear;
+    const gOk = activeGroup === 'all' || d.grupo  === activeGroup;
+    const sOk = searchQ === '' || `${d.año} ${d.grupo}`.toLowerCase().includes(searchQ);
+    return yOk && gOk && sOk;
+  });
+}
+
+// ─── KPI ──────────────────────────────────────────────────────────────────────
+function renderKPIs(data) {
+  const totalPart   = data.reduce((s,d)=>s+d.total,0);
+  const totalFed    = data.reduce((s,d)=>s+d.federal,0);
+  const totalEst    = data.reduce((s,d)=>s+d.estatal,0);
+  const totalBenFed = data.reduce((s,d)=>s+d.benFed,0);
+  const totalBenEst = data.reduce((s,d)=>s+d.benEst,0);
+  const avgMinFed   = data.length ? (data.reduce((s,d)=>s+d.ptMinFed,0)/data.length).toFixed(2) : '–';
+  const maxPtFed    = data.length ? Math.max(...data.map(d=>d.ptMaxFed)).toFixed(2) : '–';
+
+  document.getElementById('kpi-strip').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total Participantes</div><div class="kpi-val gold">${totalPart.toLocaleString('es-MX')}</div><div class="kpi-sub">Ciclos seleccionados</div></div>
+    <div class="kpi"><div class="kpi-label">Federal</div><div class="kpi-val blue">${totalFed.toLocaleString('es-MX')}</div><div class="kpi-sub">${totalPart?((totalFed/totalPart)*100).toFixed(1):'–'}% del total</div></div>
+    <div class="kpi"><div class="kpi-label">Estatal</div><div class="kpi-val" style="color:#f5a623">${totalEst.toLocaleString('es-MX')}</div><div class="kpi-sub">${totalPart?((totalEst/totalPart)*100).toFixed(1):'–'}% del total</div></div>
+    <div class="kpi"><div class="kpi-label">Beneficiados Fed.</div><div class="kpi-val green">${totalBenFed.toLocaleString('es-MX')}</div><div class="kpi-sub">${totalFed?((totalBenFed/totalFed)*100).toFixed(1):'–'}% de federales</div></div>
+    <div class="kpi"><div class="kpi-label">Beneficiados Est.</div><div class="kpi-val" style="color:#c864f5">${totalBenEst.toLocaleString('es-MX')}</div><div class="kpi-sub">${totalEst?((totalBenEst/totalEst)*100).toFixed(1):'–'}% de estatales</div></div>
+    <div class="kpi"><div class="kpi-label">Prom. Mín. Fed.</div><div class="kpi-val" style="color:#f55a5a">${avgMinFed}</div><div class="kpi-sub">Puntaje corte promedio</div></div>
+    <div class="kpi"><div class="kpi-label">Puntaje Máx. Fed.</div><div class="kpi-val" style="color:#5dde8a">${maxPtFed}</div><div class="kpi-sub">Récord en selección</div></div>
+  `;
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable(data) {
+  let rows = [...data];
+  if (sortCol) {
+    rows.sort((a,b) => {
+      const av = a[sortCol], bv = b[sortCol];
+      if (typeof av === 'number') return (av - bv) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    });
+  }
+  const tbody = document.getElementById('data-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="11">Sin datos para el filtro seleccionado.</td></tr>`;
+    return;
+  }
+  const gc = { G1:'badge-g1',G2:'badge-g2',G3:'badge-g3',G4:'badge-g4',G5:'badge-g5' };
+  tbody.innerHTML = rows.map(d => `
+    <tr>
+      <td>${d.año}</td>
+      <td><span class="badge ${gc[d.grupo]}">${d.grupo}</span></td>
+      <td class="val-fed">${d.federal.toLocaleString('es-MX')}</td>
+      <td class="val-est">${d.estatal.toLocaleString('es-MX')}</td>
+      <td class="val-total">${d.total.toLocaleString('es-MX')}</td>
+      <td class="val-fed">${d.benFed}</td>
+      <td class="val-est">${d.benEst}</td>
+      <td class="val-pts">${d.ptMaxFed}</td>
+      <td class="val-pts">${d.ptMinFed}</td>
+      <td class="val-pts">${d.ptMaxEst}</td>
+      <td class="val-pts">${d.ptMinEst}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── CHARTS ───────────────────────────────────────────────────────────────────
+const COLORS = {
+  G1:'rgba(61,142,245,', G2:'rgba(245,166,35,', G3:'rgba(93,222,138,', G4:'rgba(200,100,245,', G5:'rgba(245,90,90,'
+};
+
+let chartBar, chartDoughnut, chartLine, chartBenef;
+
+function initCharts() {
+  const base = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+  const gridColor = 'rgba(30,38,64,0.8)';
+  const tickColor = '#6b7399';
+
+  // BAR
+  chartBar = new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: { labels:[], datasets:[] },
+    options: {
+      ...base,
+      scales: {
+        x: { stacked:false, grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}} },
+        y: { stacked:false, grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}} }
+      },
+      plugins: { legend:{display:false}, tooltip:{
+        backgroundColor:'#161b2e', borderColor:'#1e2640', borderWidth:1,
+        titleColor:'#e8eaf2', bodyColor:'#6b7399',
+        titleFont:{family:'DM Mono'}, bodyFont:{family:'DM Sans'}
+      }}
+    }
+  });
+
+  // DOUGHNUT
+  chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
+    type: 'doughnut',
+    data: { labels:['Federal','Estatal'], datasets:[{ data:[0,0], backgroundColor:['rgba(61,142,245,0.8)','rgba(245,166,35,0.8)'], borderColor:['#0a0d14'], borderWidth:3 }] },
+    options: {
+      ...base,
+      plugins: {
+        legend: { display:true, position:'bottom', labels:{ color:'#6b7399', font:{family:'DM Mono',size:10}, padding:12, boxWidth:10 }},
+        tooltip:{ backgroundColor:'#161b2e', borderColor:'#1e2640', borderWidth:1, titleColor:'#e8eaf2', bodyColor:'#6b7399', titleFont:{family:'DM Mono'}, bodyFont:{family:'DM Sans'} }
+      },
+      cutout:'65%'
+    }
+  });
+
+  // LINE — puntaje mínimo federal
+  chartLine = new Chart(document.getElementById('chartLine'), {
+    type: 'line',
+    data: { labels:[], datasets:[] },
+    options: {
+      ...base,
+      tension: 0.4,
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}} },
+        y: { grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}}, min:40 }
+      },
+      plugins: {
+        legend:{ display:true, position:'bottom', labels:{color:'#6b7399',font:{family:'DM Mono',size:10},padding:10,boxWidth:10}},
+        tooltip:{ backgroundColor:'#161b2e', borderColor:'#1e2640', borderWidth:1, titleColor:'#e8eaf2', bodyColor:'#6b7399', titleFont:{family:'DM Mono'}, bodyFont:{family:'DM Sans'} }
+      }
+    }
+  });
+
+  // BAR — beneficiados
+  chartBenef = new Chart(document.getElementById('chartBenef'), {
+    type: 'bar',
+    data: { labels:[], datasets:[] },
+    options: {
+      ...base,
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}} },
+        y: { grid:{color:gridColor}, ticks:{color:tickColor,font:{family:'DM Mono',size:10}} }
+      },
+      plugins: {
+        legend:{ display:true, position:'bottom', labels:{color:'#6b7399',font:{family:'DM Mono',size:10},padding:10,boxWidth:10}},
+        tooltip:{ backgroundColor:'#161b2e', borderColor:'#1e2640', borderWidth:1, titleColor:'#e8eaf2', bodyColor:'#6b7399', titleFont:{family:'DM Mono'}, bodyFont:{family:'DM Sans'} }
+      }
+    }
+  });
+}
+
+function updateCharts(data) {
+  // BAR: total participantes por año agrupado por grupo
+  const years = [...new Set(data.map(d=>d.año))].sort();
+  const grupos = [...new Set(data.map(d=>d.grupo))].sort();
+  chartBar.data.labels = years;
+  chartBar.data.datasets = grupos.map(g => ({
+    label: g,
+    data: years.map(y => {
+      const row = data.find(d=>d.año===y&&d.grupo===g);
+      return row ? row.total : 0;
+    }),
+    backgroundColor: COLORS[g]+'0.75)',
+    borderColor: COLORS[g]+'1)',
+    borderWidth: 1,
+    borderRadius: 3,
+  }));
+  chartBar.update();
+
+  // DOUGHNUT
+  const totFed = data.reduce((s,d)=>s+d.federal,0);
+  const totEst = data.reduce((s,d)=>s+d.estatal,0);
+  chartDoughnut.data.datasets[0].data = [totFed, totEst];
+  chartDoughnut.update();
+
+  // LINE — puntaje mínimo federal por año por grupo
+  chartLine.data.labels = years;
+  chartLine.data.datasets = grupos.map(g => ({
+    label: g,
+    data: years.map(y => {
+      const row = data.find(d=>d.año===y&&d.grupo===g);
+      return row ? row.ptMinFed : null;
+    }),
+    borderColor: COLORS[g]+'1)',
+    backgroundColor: COLORS[g]+'0.1)',
+    tension: 0.4,
+    pointBackgroundColor: COLORS[g]+'1)',
+    pointRadius: 4,
+    fill: false,
+    spanGaps: true,
+  }));
+  chartLine.update();
+
+  // BENEF bar
+  chartBenef.data.labels = years;
+  chartBenef.data.datasets = [
+    {
+      label: 'Federal',
+      data: years.map(y => data.filter(d=>d.año===y).reduce((s,d)=>s+d.benFed,0)),
+      backgroundColor: 'rgba(61,142,245,0.75)',
+      borderColor: 'rgba(61,142,245,1)',
+      borderWidth:1, borderRadius:3,
+    },
+    {
+      label: 'Estatal',
+      data: years.map(y => data.filter(d=>d.año===y).reduce((s,d)=>s+d.benEst,0)),
+      backgroundColor: 'rgba(245,166,35,0.75)',
+      borderColor: 'rgba(245,166,35,1)',
+      borderWidth:1, borderRadius:3,
+    }
+  ];
+  chartBenef.update();
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  const data = filtered();
+  renderKPIs(data);
+  renderTable(data);
+  updateCharts(data);
+}
+
+// ─── CONTROLS ─────────────────────────────────────────────────────────────────
+document.getElementById('yr-group').addEventListener('click', e => {
+  const btn = e.target.closest('[data-year]');
+  if (!btn) return;
+  activeYear = btn.dataset.year;
+  document.querySelectorAll('#yr-group .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+});
+
+document.getElementById('grp-group').addEventListener('click', e => {
+  const btn = e.target.closest('[data-group]');
+  if (!btn) return;
+  activeGroup = btn.dataset.group;
+  document.querySelectorAll('#grp-group .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+});
+
+document.getElementById('search-box').addEventListener('input', e => {
+  searchQ = e.target.value.toLowerCase().trim();
+  renderAll();
+});
+
+// ─── SORT ─────────────────────────────────────────────────────────────────────
+const colMap = {
+  'año':'año','grupo':'grupo','federal':'federal','estatal':'estatal',
+  'total':'total','benFed':'benFed','benEst':'benEst',
+  'ptMaxFed':'ptMaxFed','ptMinFed':'ptMinFed','ptMaxEst':'ptMaxEst','ptMinEst':'ptMinEst'
+};
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = colMap[th.dataset.col];
+    if (!col) return;
+    if (sortCol === col) sortDir *= -1;
+    else { sortCol = col; sortDir = 1; }
+    document.querySelectorAll('thead th').forEach(h => { h.classList.remove('sorted'); h.querySelector('.sort-arrow').textContent = '↕'; });
+    th.classList.add('sorted');
+    th.querySelector('.sort-arrow').textContent = sortDir === 1 ? '↑' : '↓';
+    renderAll();
+  });
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+initCharts();
+renderAll();
+</script>
+</body>
+</html>
